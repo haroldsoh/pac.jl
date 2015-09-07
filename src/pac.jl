@@ -3,7 +3,8 @@ module PAC
 export POMDP, POMCP
 
 abstract PACModel
-abstract PACSolver 
+abstract PACSolver
+
 
 include("pomdp.jl")
 include("pomcp.jl")
