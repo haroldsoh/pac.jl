@@ -1,0 +1,3 @@
+type POMCP <: PACSolver
+
+end
