@@ -4,8 +4,7 @@ using PAC
 using Base.Test
 
 include("testUtils.jl")
-
-#include("pomdp.jl") #include pomdp test file for sample pomdp
+include("samplePomdp.jl") #include pomdp test file for sample pomdp
 
 depth = 5
 c_tradeoff = 1.0
@@ -14,14 +13,18 @@ num_loops = 1000
 stop_eps = 1e-3
 seed = 0
 srand(seed)
+
 # create our solver
 pomcp = POMCP(depth = depth,
   c_tradeoff = c_tradeoff,
   rolloutPolicy = PAC.defaultRolloutPolicy,
+  searchPolicy = PAC.POUCT,
   num_loops = num_loops,
   stop_eps = stop_eps)
 
+###########################################
 # test the belief sampler
+###########################################
 history = ["a1", "o1"]
 pomcp.tree[history] = PAC.POMCPTreeNode()
 belief = pomcp.tree[history].belief
@@ -40,7 +43,35 @@ end
 testDict(state_freq, belief, 1e-2)
 print_with_color(:green, "Belief Sampler Test: [PASSED]\n")
 
+###########################################
+# test using on my_problem
+###########################################
+type Simulator
+  state
+  model::POMDP
+end
 
-# test the sampler
+function doActionCallback!(action, sim::Simulator, model::POMDP)
+  next_state = model.transition(sim.state, action)
+  r = model.reward(sim.state, action, next_state)
+  obs = model.emission(next_state)
+  sim.state = next_state
+  return (obs, r)
+end
 
-# test the rollout policy
+sim = Simulator("happy", my_problem)
+doActionCallback(action) = doActionCallback!(action, sim, my_problem)
+
+resetTree!(pomcp)
+N = 1000
+total_reward = 0.0
+history = []
+for i=1:N
+  (action, obs, newhistory, r) = solve!(my_problem, pomcp, history, doActionCallback)
+  total_reward += r
+  print(i)
+  print(": ")
+  println(total_reward)
+end
+
+println(total_reward)

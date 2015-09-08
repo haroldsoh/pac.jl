@@ -4,6 +4,8 @@
 #   store very large state, action and observation spaces.
 
 type POMDP <: PACModel
+  initialStateDist::Function # initialStateDist() returns distribution of type BeliefParticles
+                             # representing the initial state distribution
   actions::Function  # actions() returns list of possible actions
   emission::Function # emission(state) returns observation
   reward::Function   # reward(state, action, next_state) returns Float64
