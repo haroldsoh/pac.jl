@@ -2,6 +2,8 @@
 using PAC
 using Base.Test
 
+include("testUtils.jl")
+
 states = ["happy", "angry"]
 actions = ["nothing", "apologize"]
 observations = ["smiling", "calm", "yelling"]
@@ -97,17 +99,11 @@ println(state_freq)
 safe_obs_freq = ["calm"=>258555.0,"smiling"=>643653.0,"yelling"=>97792.0]
 safe_state_freq = ["angry"=>195798.0,"happy"=>804202.0]
 
-function testExp(a, b, tol)
-  for (key,val) in a
-    @test_approx_eq_eps a[key] b[key] errortol
-  end
-end
-
 if seed == 100
   errortol = 1e-9*N
 else
   errortol = 1e-2*N
 end
 
-testExp(obs_freq, safe_obs_freq, errortol)
-testExp(state_freq, safe_state_freq, errortol)
+testDict(obs_freq, safe_obs_freq, errortol)
+testDict(state_freq, safe_state_freq, errortol)

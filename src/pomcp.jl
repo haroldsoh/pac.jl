@@ -1,12 +1,12 @@
 # The POMCP online solver for discrete POMDP problems
 
 type POMCP <: PACSolver
-  Actions
-  Tree::Dict{Any, Any}
-  Counts::Dict{Any, Int64}
-  TotalCounts::Dict{Any, Int64}
-  Value::Dict{Any,Float64}
-  Belief::Dict{Any, Int64}
+  actions
+  tree::Dict{Any, Any}
+  counts::Dict{Any, Int64}
+  total_counts::Dict{Any, Int64}
+  value::Dict{Any,Float64}
+  belief::Dict{Any, Float64}
 
   num_particles::Int64 # number particules for belief state
 
@@ -19,18 +19,14 @@ type POMCP <: PACSolver
   num_loops::Int64
   stop_eps::Float64
 
-  seed::Int64
-
-  function POMCP(;
-    actions = [],
+  function POMCP(; actions = [],
     rolloutPolicy::Function = defaultRolloutPolicy,
     searchPolicy::Function = POUCT,
     depth::Int64 = 5,
     c_tradeoff::Float64 = 1.0,
-    num_particles = 1000,
+    num_particles::Int64 = 1000,
     num_loops::Int64 = 10_000,
-    stop_eps::Float64 = 1e-3,
-    seed::Int64 = 0
+    stop_eps::Float64 = 1e-3
     )
     pomcp = new()
 
@@ -42,8 +38,11 @@ type POMCP <: PACSolver
     pomcp.num_loops = num_loops
     pomcp.stop_eps = stop_eps
 
-    pomcp.seed = seed
-    srand(seed)
+    pomcp.tree = Dict{Any, Any}()
+    pomcp.counts = Dict{Any, Int64}()
+    pomcp.total_counts = Dict{Any, Int64}()
+    pomcp.value = Dict{Any,Float64}()
+    pomcp.belief = Dict{Any, Int64}()
 
     return pomcp
   end
@@ -56,15 +55,23 @@ function solve!(problem::POMDP, solver::POMCP, history)
 end
 
 function search!(problem::POMDP, solver::POMCP, history)
+  if isempty(history)
+    state = sampleInitialState(solver::POMCP)
+  else
+    state = sampleStateFromBelief(solver::POMCP)
+  end
+
+
 
 end
 
 function sampleStateFromBelief(solver::POMCP)
   r = rand()
   cumsum = 0.0
+  freqsum = sumBeliefFreq(solver)
   last_state = 0.0
-  for (state, pstate) in solver.belief
-      cumsum += pstate
+  for (state, state_freq) in solver.belief
+      cumsum += state_freq/freqsum
       if r < cumsum
           return state
       end
@@ -73,8 +80,12 @@ function sampleStateFromBelief(solver::POMCP)
   return last_state
 end
 
-function normalizeBelief(solver::POMCP)
-
+function sumBeliefFreq(solver::POMCP)
+  freqsum = 0.0
+  for (state, state_freq) in solver.belief
+    freqsum += state_freq
+  end
+  return freqsum
 end
 
 # generate the next state
@@ -91,7 +102,7 @@ function rollout!(problem::POMDP, solver::POMCP, state, history, depth::Int64)
     return 0
   end
 
-  action = solver.rolloutPolicy(problem, state, solver.actions)
+  action = solver.rolloutPolicy(problem, history, state, solver.actions)
   next_state, obs, reward = generate(problem, state, action)
 
   if problem.isTerminal(next_state)
@@ -103,10 +114,10 @@ function rollout!(problem::POMDP, solver::POMCP, state, history, depth::Int64)
   end
 end
 
-function defaultRolloutPolicy(problem::POMDP, state, actions)
+function defaultRolloutPolicy(problem::POMDP, history, state, actions)
   return actions[rand(1:end)]
 end
 
-function POUCT(actions)
+function POUCT(solver::POMCP, history, actions)
 
 end
