@@ -66,8 +66,12 @@ function isTerminal(state)
   return false
 end
 
+function getActions()
+  return ["nothing", "apologize"]
+end
+
 # create a new POMDP
-my_problem = POMDP(emission, reward, transition, isTerminal, discount)
+my_problem = POMDP(getActions, emission, reward, transition, isTerminal, discount)
 policy = safePolicy
 curr_state = "happy"
 

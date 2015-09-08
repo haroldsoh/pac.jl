@@ -22,19 +22,22 @@ pomcp = POMCP(depth = depth,
   stop_eps = stop_eps)
 
 # test the belief sampler
-pomcp.belief["a"] = 0.5
-pomcp.belief["b"] = 0.3
-pomcp.belief["c"] = 0.2
+history = ["a1", "o1"]
+pomcp.tree[history] = PAC.POMCPTreeNode()
+belief = pomcp.tree[history].belief
+belief["a"] = 0.5
+belief["b"] = 0.3
+belief["c"] = 0.2
 
 state_freq = Dict(["a", "b", "c"], [0.0 ,0.0, 0.0])
 N = 1_000_000
 for i=1:N
-  state_freq[PAC.sampleStateFromBelief(pomcp)] += 1.0
+  state_freq[PAC.sampleStateFromBelief(pomcp, history)] += 1.0
 end
 for (state,freq) in state_freq
   state_freq[state] /= N
 end
-testDict(state_freq, pomcp.belief, 1e-2)
+testDict(state_freq, belief, 1e-2)
 print_with_color(:green, "Belief Sampler Test: [PASSED]\n")
 
 
