@@ -6,8 +6,8 @@ using Base.Test
 include("testUtils.jl")
 include("samplePomdp.jl") #include pomdp test file for sample pomdp
 
-depth = 5
-c_tradeoff = 1.0
+depth = 10
+c_tradeoff = 0.5
 rolloutPolicy = PAC.defaultRolloutPolicy
 num_loops = 1000
 stop_eps = 1e-3
@@ -63,15 +63,16 @@ sim = Simulator("happy", my_problem)
 doActionCallback(action) = doActionCallback!(action, sim, my_problem)
 
 resetTree!(pomcp)
-N = 1000
+N = 100
 total_reward = 0.0
 history = []
+prev_obs = Nothing()
 for i=1:N
-  (action, obs, newhistory, r) = solve!(my_problem, pomcp, history, doActionCallback)
+  prev_state = sim.state
+  (action, obs, history, r) = solve!(my_problem, pomcp, history, doActionCallback)
   total_reward += r
-  print(i)
-  print(": ")
-  println(total_reward)
+  println((i, prev_state, prev_obs, action, total_reward))
+  prev_obs = obs
 end
 
 println(total_reward)

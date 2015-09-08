@@ -203,7 +203,7 @@ function POUCT(model::POMDP, solver::POMCP, history)
       best_action = action
     end
   end
-
+  #println((history[end], best_action, best_value))
   @assert best_action != Nothing()
 
   return best_action
@@ -216,7 +216,6 @@ function resetTree!(solver::POMCP)
 end
 
 function pruneTree!(solver::POMCP, history)
-
   for (key, val) in solver.tree
     # check if key prefix matches history
     if length(key) < length(history)
