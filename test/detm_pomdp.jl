@@ -3,7 +3,7 @@ states_detm = [1,2,3,4,5]
 actions_detm = states_detm
 
 function initialStateDist_detm()
-  return BeliefParticles(states_detm, [0.2,0.2,0.2,0.2,0.2])
+  return BeliefParticles(states_detm, [1.0,0.0,0.0,0.0,0.0])
 end
 
 function emission_detm(state, action, next_state)

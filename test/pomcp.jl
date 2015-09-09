@@ -86,8 +86,8 @@ if test_detm_pomdp
     println((i, prev_state, prev_obs, action, total_reward))
     prev_obs = obs
   end
-  @test total_reward >= N-1 # because you won't know the initial state
-  print("Deterministic POMDP (MDP) Test: ")
+  @test total_reward == N # because you won't know the initial state
+  print("- Deterministic POMDP (MDP) Test: ")
   print_with_color(:green, "PASSED\n")
 
 end
