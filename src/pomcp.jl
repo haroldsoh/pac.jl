@@ -17,6 +17,7 @@ type POMCP <: PACSolver
   stop_eps::Float64
 
   tree_init::Bool
+  belief_init::Bool
 
   function POMCP(;
     rolloutPolicy::Function = defaultRolloutPolicy,
@@ -41,6 +42,7 @@ type POMCP <: PACSolver
 
     pomcp.tree = POMCPTreeNode()
     pomcp.tree_init = false
+    pomcp.belief_init = false
     return pomcp
   end
 
@@ -49,36 +51,35 @@ end
 
 # online solver, returns action and value of action
 # doAction is a callback function that will execute once the action is found
-function solve!(model::POMDP, solver::POMCP, history, doAction::Function)
+function solve!(model::POMDP, solver::POMCP, doAction::Function)
 
-  (action, value) = search!(model::POMDP, solver::POMCP, history)
+  (action, value) = search!(model::POMDP, solver::POMCP)
   # take the action
   (obs, reward) = doAction(action)
 
   # prune the tree
-  newhistory = [history, action, obs]
-  tree = solver.tree[newhistory]
-
-  return (action, obs, newhistory, reward)
+  solver.tree = solver.tree[[action, obs]]
+  solver.belief_init = true
+  return (action, obs, reward)
 end
 
 
-function search!(model::POMDP, solver::POMCP, history)
+function search!(model::POMDP, solver::POMCP)
   for i=1:solver.num_loops
     state = Nothing()
-    if isempty(history)
+    if !solver.tree_init || !solver.belief_init
       state = sampleInitialState(model)
     else
-      state = sampleStateFromBelief(solver, history)
+      state = sampleStateFromBelief(solver, [])
     end
     @assert state != Nothing()
-    simulate!(model, solver, state, history, solver.depth)
+    simulate!(model, solver, state, [], solver.depth)
   end
 
   best_value = -Inf
   best_action = Nothing()
   for a in model.actions()
-    aug_history = [history, a]
+    aug_history = [a]
     value = solver.tree[aug_history].value
     if (value > best_value) || (value == best_value && (rand() > 0.5))
       best_value = value
@@ -152,7 +153,6 @@ function rollout!(model::POMDP, solver::POMCP, state, history, depth::Int64)
 
   action = solver.rolloutPolicy(model, state, history )
   next_state, obs, reward = generate(model, state, action)
-
   if model.isTerminal(next_state)
     return reward
   else
@@ -197,7 +197,7 @@ function POUCT(model::POMDP, solver::POMCP, history)
       best_action = action
     end
   end
-  #println((history[end], best_action, best_value))
+  #println((history, best_action, best_value))
   @assert best_action != Nothing()
 
   return best_action
@@ -207,4 +207,6 @@ end
 # Helper functions
 function resetTree!(solver::POMCP)
   solver.tree = POMCPTreeNode()
+  solver.tree_init = false
+  solver.belief_init = false
 end

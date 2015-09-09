@@ -68,7 +68,7 @@ function setindex!(root::POMCPTreeNode, snode::POMCPTreeNode, key)
     node.keyelem = key[end]
   else
     node.keyelem = nothing
-  end 
+  end
   return node
 end
 
@@ -76,5 +76,6 @@ function transferMembers!(source::POMCPTreeNode, dest::POMCPTreeNode)
   dest.keyelem = source.keyelem # key element associated with this node
   dest.value = source.value
   dest.count = source.count
+  dest.belief = source.belief
   dest.children = source.children
 end

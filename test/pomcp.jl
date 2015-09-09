@@ -11,7 +11,7 @@ test_belief_sampler = false
 test_detm_pomdp = true # deterministic POMDP (MDP) test
 
 # POMCP params
-depth = 3
+depth = 7
 c_tradeoff = 0.5
 rolloutPolicy = PAC.defaultRolloutPolicy
 num_loops = 1000
@@ -74,18 +74,19 @@ if test_detm_pomdp
   doActionCallback(action) = doActionCallback!(action, sim, detm_problem)
 
   resetTree!(pomcp)
-  N = 50
+  N = 100
   total_reward = 0.0
 
   prev_obs = Nothing()
-  history = []
+
   @time for i=1:N
     prev_state = sim.state
-    (action, obs, history, r) = solve!(detm_problem, pomcp, history, doActionCallback)
+    (action, obs, r) = solve!(detm_problem, pomcp, doActionCallback)
     total_reward += r
     println((i, prev_state, prev_obs, action, total_reward))
     prev_obs = obs
   end
+
   @test total_reward == N # because you won't know the initial state
   print("- Deterministic POMDP (MDP) Test: ")
   print_with_color(:green, "PASSED\n")
