@@ -58,8 +58,15 @@ function solve!(model::POMDP, solver::POMCP, doAction::Function)
   (obs, reward) = doAction(action)
 
   # prune the tree
-  solver.tree = solver.tree[[action, obs]]
-  solver.belief_init = true
+  newhistory = [action, obs]
+  if haskey(solver.tree, newhistory)
+    solver.tree = solver.tree[newhistory]
+    solver.belief_init = true
+  else
+    # we got an observation not in the subtree
+    # recover by resetting tree
+    resetTree!(solver.tree)
+  end
   return (action, obs, reward)
 end
 

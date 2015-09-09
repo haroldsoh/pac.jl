@@ -29,7 +29,5 @@ end
 @test PAC.haskey(t, keys[1])
 @test !PAC.haskey(t, ["a0", "o2"])
 
-
-
 print("- POMCP Tree Test: ")
 print_with_color(:green, "PASSED\n")
