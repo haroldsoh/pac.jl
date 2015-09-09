@@ -6,7 +6,7 @@ seed = 100
 srand(seed)
 
 include("testutils.jl")
-include("spouse_pomdp.jl") # creates a pomdp named my_problem
+include("spouse_pomdp.jl") # creates a pomdp named spse_problem
 
 policy = safePolicy
 curr_state = "happy"
@@ -21,9 +21,9 @@ obs = Nothing()
 for i=1:N
   old_state = curr_state
   action = policy(obs, actions)
-  curr_state = my_problem.transition(curr_state, action)
-  total_reward += my_problem.reward(old_state, action, curr_state)
-  obs = my_problem.emission(old_state, action, curr_state)
+  curr_state = spse_problem.transition(curr_state, action)
+  total_reward += spse_problem.reward(old_state, action, curr_state)
+  obs = spse_problem.emission(old_state, action, curr_state)
 
   # collect frequencies
   obs_freq[obs] += 1

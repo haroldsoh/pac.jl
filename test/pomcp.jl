@@ -4,17 +4,17 @@ using PAC
 using Base.Test
 
 include("testutils.jl")
-include("detm_pomdp.jl")
+
 
 # options
 test_belief_sampler = false
 test_detm_pomdp = true # deterministic POMDP (MDP) test
 
 # POMCP params
-depth = 7
+depth = 5
 c_tradeoff = 0.5
 rolloutPolicy = PAC.defaultRolloutPolicy
-num_loops = 1000
+num_loops = 500
 stop_eps = 1e-3
 seed = 0
 srand(seed)
@@ -52,7 +52,7 @@ if test_belief_sampler
 end
 
 ###########################################
-# test using on my_problem
+# test using on spse_problem
 ###########################################
 type Simulator
   state
@@ -69,9 +69,37 @@ end
 
 if test_detm_pomdp
   println("-------- Running Deterministic POMDP Test --------")
+  include("detm_pomdp.jl")
   initial_state = PAC.sampleStateFromBelief(detm_problem.initialStateDist())
   sim = Simulator(initial_state, detm_problem)
   doActionCallback(action) = doActionCallback!(action, sim, detm_problem)
+
+  resetTree!(pomcp)
+  N = 10
+  total_reward = 0.0
+
+  prev_obs = Nothing()
+
+  @time for i=1:N
+    prev_state = sim.state
+    (action, obs, r) = solve!(detm_problem, pomcp, doActionCallback)
+    total_reward += r
+    # println((i, prev_state, prev_obs, action, total_reward))
+    prev_obs = obs
+  end
+
+  @test total_reward == N
+  print("- Deterministic POMDP (MDP) Test: ")
+  print_with_color(:green, "PASSED\n")
+
+end
+
+if test_detm_pomdp
+  println("-------- Running Spouse POMDP Test --------")
+  include("spouse_pomdp.jl")
+  initial_state = PAC.sampleStateFromBelief(spse_problem.initialStateDist())
+  sim = Simulator(initial_state, spse_problem)
+  doActionCallback(action) = doActionCallback!(action, sim, spse_problem)
 
   resetTree!(pomcp)
   N = 100
@@ -81,14 +109,14 @@ if test_detm_pomdp
 
   @time for i=1:N
     prev_state = sim.state
-    (action, obs, r) = solve!(detm_problem, pomcp, doActionCallback)
+    (action, obs, r) = solve!(spse_problem, pomcp, doActionCallback)
     total_reward += r
     println((i, prev_state, prev_obs, action, total_reward))
     prev_obs = obs
   end
-
-  @test total_reward == N # because you won't know the initial state
-  print("- Deterministic POMDP (MDP) Test: ")
+  println("Total Reward: ", total_reward)
+  @test total_reward == 72
+  print("- Spouse POMDP (MDP) Test: ")
   print_with_color(:green, "PASSED\n")
 
 end

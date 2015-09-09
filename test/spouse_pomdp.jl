@@ -40,6 +40,18 @@ function reward(state, action, next_state)
   return next_state == "happy" ? 1 : -1
 end
 
+function isTerminal(state)
+  return false
+end
+
+function getActions()
+  return ["do_nothing", "apologize"]
+end
+
+# create a new POMDP
+spse_problem = POMDP(initialStateDist, getActions, emission, reward, transition, isTerminal, discount)
+
+
 # Some policies you can try
 function randomPolicy(obs, actions)
   return actions[rand(1:end)]
@@ -61,14 +73,3 @@ function safePolicy(obs, action)
   end
   @assert false
 end
-
-function isTerminal(state)
-  return false
-end
-
-function getActions()
-  return ["do_nothing", "apologize"]
-end
-
-# create a new POMDP
-my_problem = POMDP(initialStateDist, getActions, emission, reward, transition, isTerminal, discount)
