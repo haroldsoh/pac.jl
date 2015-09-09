@@ -1,0 +1,11 @@
+language: julia
+os:
+    - linux
+    - osx
+julia:
+    - release
+    - nightly
+notifications:
+    email: false
+script:
+    - julia test/runalltests.jl
