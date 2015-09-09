@@ -114,7 +114,7 @@ function simulate!(model::POMDP, solver::POMCP, state, history, depth)
 
   action = solver.searchPolicy(model, solver, history)
   newstate = model.transition(state, action)
-  obs = model.emission(newstate)
+  obs = model.emission(state, action, newstate)
 
   reward = model.reward(state, action, newstate)
   newhistory = [history, action]
@@ -145,7 +145,7 @@ end
 # generate the next state
 function generate(model::POMDP, state, action)
   next_state = model.transition(state, action)
-  obs = model.emission(next_state)
+  obs = model.emission(state, action, next_state)
   reward = model.reward(state, action, next_state)
   return (next_state, obs, reward)
 end

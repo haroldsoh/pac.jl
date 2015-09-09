@@ -7,7 +7,7 @@ type POMDP <: PACModel
   initialStateDist::Function # initialStateDist() returns distribution of type BeliefParticles
                              # representing the initial state distribution
   actions::Function  # actions() returns list of possible actions
-  emission::Function # emission(state) returns observation
+  emission::Function # emission(state, action, next_state) returns observation
   reward::Function   # reward(state, action, next_state) returns Float64
   transition::Function # transition(state, action) returns next_state
   isTerminal::Function #isTerminal(state) returns true if state is terminal state
