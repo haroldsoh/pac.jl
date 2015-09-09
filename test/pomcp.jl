@@ -102,7 +102,7 @@ if test_detm_pomdp
   doActionCallback(action) = doActionCallback!(action, sim, spse_problem)
 
   resetTree!(pomcp)
-  N = 100
+  N = 20
   total_reward = 0.0
 
   prev_obs = Nothing()
@@ -111,11 +111,10 @@ if test_detm_pomdp
     prev_state = sim.state
     (action, obs, r) = solve!(spse_problem, pomcp, doActionCallback)
     total_reward += r
-    println((i, prev_state, prev_obs, action, total_reward))
     prev_obs = obs
   end
   println("Total Reward: ", total_reward)
-  @test total_reward == 72
+  @test total_reward == 16
   print("- Spouse POMDP (MDP) Test: ")
   print_with_color(:green, "PASSED\n")
 
