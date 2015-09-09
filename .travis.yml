@@ -9,4 +9,4 @@ notifications:
 script:
     - julia --code-coverage test/runtests.jl
 after_success:
-    - julia -e 'cd(Pkg.dir("PAC")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
+    - julia -e 'Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
