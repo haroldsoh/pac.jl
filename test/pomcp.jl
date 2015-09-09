@@ -3,7 +3,7 @@
 using PAC
 using Base.Test
 
-include("testUtils.jl")
+include("testutils.jl")
 include("detm_pomdp.jl")
 
 # options
@@ -74,7 +74,7 @@ if test_detm_pomdp
   doActionCallback(action) = doActionCallback!(action, sim, detm_problem)
 
   resetTree!(pomcp)
-  N = 10
+  N = 50
   total_reward = 0.0
 
   prev_obs = Nothing()

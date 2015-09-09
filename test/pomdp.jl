@@ -5,7 +5,7 @@ using Base.Test
 seed = 100
 srand(seed)
 
-include("testUtils.jl")
+include("testutils.jl")
 include("spouse_pomdp.jl") # creates a pomdp named my_problem
 
 policy = safePolicy

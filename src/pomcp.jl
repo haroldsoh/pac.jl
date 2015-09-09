@@ -1,18 +1,10 @@
 # The POMCP online solver for discrete POMDP models
 
-type POMCPTreeNode
-  value::Float64
-  count::Int64  # serves as total count when history does not end with an action
-                # and action dependent count when history ends with an action
-  belief::BeliefParticles # belief states
-end
-
-POMCPTreeNode() = POMCPTreeNode(0.0, 0.0, BeliefParticles())
-
+include("pomcp_treenode.jl")
 
 # POMCP Solver
 type POMCP <: PACSolver
-  tree::Dict{Vector, POMCPTreeNode}
+  tree::POMCPTreeNode
   num_particles::Int64 # max number particles for belief state
 
   depth::Int64        # search depth
@@ -23,6 +15,8 @@ type POMCP <: PACSolver
 
   num_loops::Int64
   stop_eps::Float64
+
+  tree_init::Bool
 
   function POMCP(;
     rolloutPolicy::Function = defaultRolloutPolicy,
@@ -45,8 +39,8 @@ type POMCP <: PACSolver
     pomcp.rolloutPolicy = defaultRolloutPolicy
     pomcp.searchPolicy = POUCT
 
-    pomcp.tree = Dict{Vector, POMCPTreeNode}()
-
+    pomcp.tree = POMCPTreeNode()
+    pomcp.tree_init = false
     return pomcp
   end
 
@@ -63,8 +57,7 @@ function solve!(model::POMDP, solver::POMCP, history, doAction::Function)
 
   # prune the tree
   newhistory = [history, action, obs]
-  newroot = solver.tree[newhistory]
-  pruneTree!(solver, newhistory)
+  tree = solver.tree[newhistory]
 
   return (action, obs, newhistory, reward)
 end
@@ -103,8 +96,9 @@ function simulate!(model::POMDP, solver::POMCP, state, history, depth)
     return 0
   end
 
-  if !haskey(solver.tree, history)
+  if !haskey(solver.tree, history) || !solver.tree_init
     solver.tree[history] = POMCPTreeNode()
+    solver.tree_init = true
     for action in model.actions()
       aug_history = [history, action]
       solver.tree[aug_history] = POMCPTreeNode()
@@ -212,23 +206,5 @@ end
 
 # Helper functions
 function resetTree!(solver::POMCP)
-  solver.tree = Dict{Vector, POMCPTreeNode}()
-end
-
-function pruneTree!(solver::POMCP, history)
-  for (key, val) in solver.tree
-    # check if key prefix matches history
-    if length(key) < length(history)
-      delete!(solver.tree, key)
-      continue
-    end
-
-    for (e,h) in zip(key, history)
-      if e != h
-        delete!(solver.tree, key)
-        break
-      end
-    end
-  end
-
+  solver.tree = POMCPTreeNode()
 end
